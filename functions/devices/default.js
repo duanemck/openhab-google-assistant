@@ -96,6 +96,9 @@ class DefaultDevice {
     if (typeof config.pinNeeded === 'string') {
       metadata.customData.pinNeeded = config.pinNeeded;
     }
+    if (config.waitForStateChange) {
+      metadata.customData.waitForStateChange = config.waitForStateChange;
+    }
     return metadata;
   }
 
