@@ -71,6 +71,10 @@ class DefaultCommand {
     return this.getResponseStates(params, item, device)
   }
 
+  static shouldGetLatestState() {
+    return false;
+  }
+
   /**
    * Check if new state is as expected. 
    * @param {object} params 
@@ -189,6 +193,13 @@ class DefaultCommand {
     })
   }
 
+  static getItemState(device, expectedState) {
+    if (this.shouldGetLatestState()) {
+      return apiHandler.getItem(device.id);
+    }
+    return Promise.resolve(expectedState);
+  }
+
   /**
    * @param {object} apiHandler
    * @param {array} devices
@@ -243,7 +254,7 @@ class DefaultCommand {
           }
         return sendCommandPromise
           .then(() => this.delayPromise(device))
-          .then(() => apiHandler.getItem(device.id))
+          .then(() => this.getItemState(device, responseStates))
           .then((newState) => {
             const updateFailedResponse = this.checkUpdateFailed(params, newState, device);
             if (updateFailedResponse) {

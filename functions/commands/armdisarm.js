@@ -33,10 +33,13 @@ class ArmDisarm extends DefaultCommand {
   }
 
   static getResponseStates(params) {
-    return {
+    let response = {
       isArmed: params.arm,
-      armLevel: params.armLevel
-    };
+    }
+    if (params.armLevel) {
+      response.currentArmLevel = params.armLevel;
+    }
+    return response;
   }
 
   static shouldValidateStateChange() {
@@ -96,7 +99,7 @@ class ArmDisarm extends DefaultCommand {
       isArmed: members[SecuritySystem.armedMemberName].state === 'ON'
     }
     if (params.armLevel) {
-      response.armLevel = members[SecuritySystem.armLevelMemberName].state;
+      response.currentArmLevel = members[SecuritySystem.armLevelMemberName].state;
     }
     return response;
   }

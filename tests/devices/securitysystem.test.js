@@ -17,32 +17,56 @@ describe('SecuritySystem Device', () => {
     expect(Device.matchesItemType({ type: 'Switch' })).toBe(true);
     expect(Device.matchesItemType({ type: 'String' })).toBe(false);
     expect(Device.matchesItemType({ type: 'Group', groupType: 'Switch' })).toBe(true);
-    expect(Device.matchesItemType({ type: 'Group', groupType: 'String' })).toBe(false);
   });
 
   describe('getState', () => {
     test('getState', () => {
-      expect(Device.getState({ state: 'ON' })).toStrictEqual({
-        isArmed: true
+      let device = {
+        members: [
+          {
+            metadata: {
+              ga: {
+                value: Device.armedMemberName
+              }
+            },
+            state: "ON"
+          }
+        ]
+      }
+      expect(Device.getState(device)).toStrictEqual({
+        "isArmed": true,
+        "currentArmLevel": undefined,
+        "currentStatusReport": []
       });
-      expect(Device.getState({ state: 'OFF' })).toStrictEqual({
-        isArmed: false
+      device.members[0].state = "OFF";
+
+      expect(Device.getState(device)).toStrictEqual({
+        "isArmed": false,
+        "currentArmLevel": undefined,
+        "currentStatusReport": []
       });
     });
 
     test('getState inverted', () => {
       const item = {
-        state: 'ON',
-        metadata: {
-          ga: {
-            config: {
-              inverted: true
+        members: [
+          {
+            metadata: {
+              ga: {
+                value: Device.armedMemberName
+              }
+            },
+            state: "ON"
+          }
+        ],
             }
           }
         }
       };
       expect(Device.getState(item)).toStrictEqual({
-        isArmed: false
+        "isArmed": false,
+        "currentArmLevel": undefined,
+        "currentStatusReport": []
       });
     });
   });

@@ -127,7 +127,7 @@ describe('Default Command', () => {
       expect(result).toStrictEqual([
         {
           ids: ['Item1'],
-          states: {},
+          states: { online: true },
           status: 'SUCCESS'
         }
       ]);

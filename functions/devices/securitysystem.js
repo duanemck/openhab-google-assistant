@@ -130,8 +130,8 @@ class SecuritySystem extends DefaultDevice {
   static getState(item) {
     const members = this.getMembers(item);
     let state = members[memberArmed].state === stateSwitchActive;
-    let armLevel = null;
-    if (state) {
+    let armLevel = undefined;
+    if (state && memberArmLevel in members) {
       armLevel = members[memberArmLevel].state;
     }
 
@@ -149,7 +149,7 @@ class SecuritySystem extends DefaultDevice {
   static getStatusReport(item, members) {
     let report = [];
 
-    let isTrouble = members[memberTrouble].state === stateSwitchActive;
+    let isTrouble = memberTrouble in members && members[memberTrouble].state === stateSwitchActive;
 
     if (isTrouble) {
       let troubleCode = members[memberErrorCode].state;
