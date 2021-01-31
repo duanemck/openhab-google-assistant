@@ -261,7 +261,7 @@ class DefaultCommand {
               commandsResponse.push(updateFailedResponse);
               return;
             }
-            let updatedResponseState = this.getNewState(params, newState, device);
+            let updatedResponseState = this.shouldGetLatestState() ? this.getNewState(params, newState, device) : responseStates;
             updatedResponseState.online = true;
             commandsResponse.push({
               ids: [device.id],

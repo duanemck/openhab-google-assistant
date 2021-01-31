@@ -12,7 +12,8 @@ describe('Fan Device', () => {
         config: {
           inverted: true,
           ackNeeded: true,
-          pinNeeded: '1234'
+          pinNeeded: '1234',
+          "waitForStateChange": 9
         }
       },
       synonyms: {
@@ -25,7 +26,8 @@ describe('Fan Device', () => {
     expect(Device.getConfig(item)).toStrictEqual({
       ackNeeded: true,
       inverted: true,
-      pinNeeded: '1234'
+      pinNeeded: '1234',
+      "waitForStateChange": 9
     });
   });
 
@@ -41,7 +43,8 @@ describe('Fan Device', () => {
         deviceType: 'DefaultDevice',
         inverted: true,
         itemType: 'Number',
-        pinNeeded: '1234'
+        pinNeeded: '1234',
+        "waitForStateChange": 9
       },
       deviceInfo: {
         hwVersion: '2.5.0',
