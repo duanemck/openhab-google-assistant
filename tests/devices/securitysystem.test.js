@@ -19,6 +19,12 @@ describe('SecuritySystem Device', () => {
     expect(Device.matchesItemType({ type: 'Group', groupType: 'Switch' })).toBe(true);
   });
 
+  test('getTraits', () => {
+    expect(Device.getTraits()).toStrictEqual([
+      'action.devices.traits.ArmDisarm',
+      'action.devices.traits.StatusReport'
+    ]);
+  });
   describe('getState', () => {
     test('getState', () => {
       let device = {
@@ -70,4 +76,296 @@ describe('SecuritySystem Device', () => {
       });
     });
   });
+
+  test('getMemberToSendArmCommand', () => {
+    let device = {
+      members: [
+        {
+          name: 'armed',
+          metadata: {
+            ga: {
+              value: Device.armedMemberName
+            }
+          },
+          state: "ON"
+        },
+        {
+          name: 'armLevel',
+          metadata: {
+            ga: {
+              value: Device.armLevelMemberName
+            }
+          },
+          state: "L1"
+        }
+      ]
+    }
+    expect(Device.getMemberToSendArmCommand(device, { 'arm': true })).toBe('armed');
+    expect(Device.getMemberToSendArmCommand(device, { 'arm': true, armLevel: 'L1' })).toBe('armLevel');
+  });
+
+  describe('getAttributes', () => {
+    test('just a switch with no config', () => {
+      let device = {
+        metadata: {
+          ga: {
+            config: {
+            }
+          }
+        }
+      }
+      const attributes = Device.getAttributes(device);
+      expect(attributes.availableArmLevels).toStrictEqual({});
+
+    });
+
+    test('armLevels, 1 level with lang and ordered set', () => {
+      let device = {
+        metadata: {
+          ga: {
+            config: {
+              armLevels: "L1=Stay",
+              lang: "de",
+              ordered: true
+            }
+          }
+        }
+      }
+      const attributes = Device.getAttributes(device);
+      expect(attributes.availableArmLevels).toBeDefined();
+      expect(attributes.availableArmLevels.ordered).toBe(true);
+
+      expect(attributes?.availableArmLevels?.levels).toBeDefined();
+      const levels = attributes.availableArmLevels.levels;
+
+      expect(levels).toStrictEqual(
+        [
+          {
+            "level_name": "L1",
+            "level_values": [
+              {
+                "level_synonym": ["Stay"],
+                "lang": "de"
+              }
+            ]
+          }
+        ]);
+
+    });
+
+    test('armLevels, 1 level with default ordered value', () => {
+      let device = {
+        metadata: {
+          ga: {
+            config: {
+              armLevels: "L1=Stay",
+              lang: "en"
+            }
+          }
+        }
+      }
+      const attributes = Device.getAttributes(device);
+      expect(attributes.availableArmLevels).toBeDefined();
+      expect(attributes.availableArmLevels.ordered).toBe(false);
+    });
+
+    test('armLevels, 1 level with default lang', () => {
+      let device = {
+        metadata: {
+          ga: {
+            config: {
+              armLevels: "L1=Stay"
+            }
+          }
+        }
+      }
+      const attributes = Device.getAttributes(device);
+
+      expect(attributes?.availableArmLevels?.levels).toBeDefined();
+      const levels = attributes.availableArmLevels.levels;
+
+      expect(levels).toStrictEqual(
+        [
+          {
+            "level_name": "L1",
+            "level_values": [
+              {
+                "level_synonym": ["Stay"],
+                "lang": "en"
+              }
+            ]
+          }
+        ]);
+
+    });
+
+    test('armLevels, multiple levels', () => {
+      let device = {
+        metadata: {
+          ga: {
+            config: {
+              armLevels: "L1=Stay,L2=Night,L3=Away",
+              lang: "en",
+              ordered: true
+            }
+          }
+        }
+      }
+      const attributes = Device.getAttributes(device);
+      expect(attributes.availableArmLevels).toBeDefined();
+      expect(attributes.availableArmLevels.ordered).toBe(true);
+
+      expect(attributes?.availableArmLevels?.levels).toBeDefined();
+      const levels = attributes.availableArmLevels.levels;
+
+      expect(levels).toStrictEqual(
+        [
+          {
+            "level_name": "L1",
+            "level_values": [
+              {
+                "level_synonym": ["Stay"],
+                "lang": "en"
+              }
+            ]
+          }, {
+            "level_name": "L2",
+            "level_values": [
+              {
+                "level_synonym": ["Night"],
+                "lang": "en"
+              }
+            ]
+          }, {
+            "level_name": "L3",
+            "level_values": [
+              {
+                "level_synonym": ["Away"],
+                "lang": "en"
+              }
+            ]
+          }
+        ]);
+
+    });
+  });
+
+  describe('getMembers', () => {
+    const memberArmed = 'securitySystemArmed';
+    const memberArmLevel = 'securitySystemArmLevel';
+    const memberZone = 'securitySystemZone';
+    const memberTrouble = 'securitySystemTrouble';
+    const memberErrorCode = 'securitySystemTroubleCode';
+
+    test('all possible members defined with no extra config', () => {
+
+      let device = {
+        members: [
+          {
+            name: 'armed',
+            metadata: {
+              ga: {
+                value: memberArmed
+              }
+            },
+            state: "ON"
+          },
+          {
+            name: 'armLevel',
+            metadata: {
+              ga: {
+                value: memberArmLevel
+              }
+            },
+            state: "L1"
+          },
+          {
+            name: 'trouble',
+            metadata: {
+              ga: {
+                value: memberTrouble
+              }
+            },
+            state: "OFF"
+          },
+          {
+            name: 'errorCode',
+            metadata: {
+              ga: {
+                value: memberErrorCode
+              }
+            },
+            state: "ErrorCode123"
+          },
+          {
+            name: 'zone1',
+            metadata: {
+              ga: {
+                value: memberZone
+              }
+            },
+            state: "OPEN"
+          }
+        ]
+      }
+      const members = Device.getMembers(device);
+      let expectedMembers = {};
+      expectedMembers[memberArmed] = { name: "armed", state: "ON", config: {} }
+      expectedMembers[memberArmLevel] = { name: "armLevel", state: "L1", config: {} }
+      expectedMembers[memberTrouble] = { name: "trouble", state: "OFF", config: {} }
+      expectedMembers[memberErrorCode] = { name: "errorCode", state: "ErrorCode123", config: {} }
+      expectedMembers.zones = [{ name: "zone1", state: "OPEN", config: {} }]
+      expect(members).toStrictEqual(expectedMembers);
+    });
+
+    test('bare minimum members', () => {
+
+      let device = {
+        members: [
+          {
+            name: 'armed',
+            metadata: {
+              ga: {
+                value: memberArmed
+              }
+            },
+            state: "ON"
+          }
+        ]
+      }
+      const members = Device.getMembers(device);
+      let expectedMembers = { zones: [] };
+      expectedMembers[memberArmed] = { name: "armed", state: "ON", config: {} }
+      expect(members).toStrictEqual(expectedMembers);
+    });
+
+    test('zones with extra config', () => {
+
+      let device = {
+        members: [
+
+          {
+            name: 'zone1',
+            metadata: {
+              ga: {
+                value: memberZone,
+                config: { zoneType: 'OpenClose' }
+              }
+            },
+            state: "OPEN"
+          }
+        ]
+      }
+      const members = Device.getMembers(device);
+      let expectedMembers = {};
+      expectedMembers.zones = [{ name: "zone1", state: "OPEN", config: { zoneType: "OpenClose" } }]
+      expect(members).toStrictEqual(expectedMembers);
+    });
+  });
+
+
+  // describe('getStatusReport', () => {
+  //   Device.getStatusReport({});
+  // });
+
 });

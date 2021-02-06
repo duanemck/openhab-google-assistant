@@ -3,6 +3,9 @@ const DefaultDevice = require('./default.js');
 // TODO:
 // Option for pin on disarm only
 // Don't store the pin at Google in the customData
+// Report state
+// Run locally
+// Pin and Ack case
 
 const configLang = 'lang';
 const configOrdered = 'ordered';
