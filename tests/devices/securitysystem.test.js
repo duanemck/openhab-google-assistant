@@ -53,6 +53,41 @@ describe('SecuritySystem Device', () => {
       });
     });
 
+    test('getState with armLevel', () => {
+      let device = {
+        members: [
+          {
+            metadata: {
+              ga: {
+                value: Device.armedMemberName
+              }
+            },
+            state: "ON"
+          },
+          {
+            metadata: {
+              ga: {
+                value: Device.armLevelMemberName
+              }
+            },
+            state: "L1"
+          }
+        ]
+      }
+      expect(Device.getState(device)).toStrictEqual({
+        "isArmed": true,
+        "currentArmLevel": "L1",
+        "currentStatusReport": []
+      });
+      device.members[0].state = "OFF";
+
+      expect(Device.getState(device)).toStrictEqual({
+        "isArmed": false,
+        "currentArmLevel": undefined,
+        "currentStatusReport": []
+      });
+    });
+
     test('getState inverted', () => {
       const item = {
         members: [
@@ -77,31 +112,65 @@ describe('SecuritySystem Device', () => {
     });
   });
 
-  test('getMemberToSendArmCommand', () => {
-    let device = {
-      members: [
-        {
-          name: 'armed',
-          metadata: {
-            ga: {
-              value: Device.armedMemberName
-            }
+  describe('getMemberToSendArmCommand', () => {
+    test('normal case', () => {
+      let device = {
+        members: [
+          {
+            name: 'armed',
+            metadata: {
+              ga: {
+                value: Device.armedMemberName
+              }
+            },
+            state: "ON"
           },
-          state: "ON"
-        },
-        {
-          name: 'armLevel',
-          metadata: {
-            ga: {
-              value: Device.armLevelMemberName
-            }
-          },
-          state: "L1"
-        }
-      ]
-    }
-    expect(Device.getMemberToSendArmCommand(device, { 'arm': true })).toBe('armed');
-    expect(Device.getMemberToSendArmCommand(device, { 'arm': true, armLevel: 'L1' })).toBe('armLevel');
+          {
+            name: 'armLevel',
+            metadata: {
+              ga: {
+                value: Device.armLevelMemberName
+              }
+            },
+            state: "L1"
+          }
+        ]
+      }
+      expect(Device.getMemberToSendArmCommand(device, { 'arm': true })).toBe('armed');
+      expect(Device.getMemberToSendArmCommand(device, { 'arm': true, armLevel: 'L1' })).toBe('armLevel');
+
+    });
+
+    test('missing armLevel member', () => {
+      let device = {
+        members: [
+          {
+            name: 'armed',
+            metadata: {
+              ga: {
+                value: Device.armedMemberName
+              }
+            },
+            state: "ON"
+          }
+
+        ]
+      }
+      expect(() => {
+        Device.getMemberToSendArmCommand(device, { 'arm': true, armLevel: 'L1' });
+      }).toThrow();
+
+    });
+
+    test('missing armed member', () => {
+      let device = { members: [] }
+      expect(() => {
+        Device.getMemberToSendArmCommand(device, { 'arm': true, armLevel: 'L1' });
+      }).toThrow();
+      expect(() => {
+        Device.getMemberToSendArmCommand(device, { 'arm': true });
+      }).toThrow();
+    });
   });
 
   describe('getAttributes', () => {
@@ -273,6 +342,50 @@ describe('SecuritySystem Device', () => {
     const memberTrouble = 'securitySystemTrouble';
     const memberErrorCode = 'securitySystemTroubleCode';
 
+    test('member without ga metadata', () => {
+      let device = {
+        members: [
+          {
+            name: 'armed',
+            metadata: {
+              ga: {
+                value: memberArmed
+              }
+            },
+            state: "ON"
+          },
+          {
+            name: 'someOtherMember',
+            state: "L1"
+          }
+        ]
+      }
+      const members = Device.getMembers(device);
+      let expectedMembers = { zones: [] };
+      expectedMembers[memberArmed] = { name: "armed", state: "ON", config: {} }
+
+      expect(members).toStrictEqual(expectedMembers);
+    });
+
+    test('member with ga metadata but not an alarm item', () => {
+      let device = {
+        members: [
+          {
+            name: 'armed',
+            metadata: {
+              ga: {
+                value: 'someOtherMember'
+              }
+            },
+            state: "ON"
+          }
+        ]
+      }
+      const members = Device.getMembers(device);
+      let expectedMembers = { zones: [] };
+      expect(members).toStrictEqual(expectedMembers);
+    });
+
     test('all possible members defined with no extra config', () => {
 
       let device = {
@@ -380,8 +493,102 @@ describe('SecuritySystem Device', () => {
   });
 
 
-  // describe('getStatusReport', () => {
-  //   Device.getStatusReport({});
-  // });
+  describe('getStatusReport', () => {
+    const memberZone = 'securitySystemZone';
+    const memberTrouble = 'securitySystemTrouble';
+    const memberErrorCode = 'securitySystemTroubleCode';
+
+    test('trouble', () => {
+
+      let device = {
+        name: "alarm",
+        members: [
+          {
+            name: 'trouble',
+            metadata: {
+              ga: {
+                value: memberTrouble
+              }
+            },
+            state: "ON"
+          },
+          {
+            name: 'errorCode',
+            metadata: {
+              ga: {
+                value: memberErrorCode
+              }
+            },
+            state: "ErrorCode123"
+          }
+        ]
+      }
+      expect(Device.getStatusReport(device, Device.getMembers(device))).toStrictEqual([{
+        blocking: false,
+        deviceTarget: "alarm",
+        priority: 0,
+        statusCode: "ErrorCode123"
+      }]);
+    });
+
+    test('zones', () => {
+      let device = {
+        name: "alarm",
+        members: [
+          {
+            name: 'zone1',
+            metadata: {
+              ga: {
+                value: memberZone,
+                config: {
+                  zoneType: "OpenClose",
+                  blocking: true
+                }
+              }
+            },
+            state: "OPEN"
+          },
+          {
+            name: 'zone2',
+            metadata: {
+              ga: {
+                value: memberZone,
+                config: {
+                  zoneType: "Motion",
+                  blocking: false
+                }
+              }
+            },
+            state: "OPEN"
+          },
+          {
+            name: 'zone3',
+            metadata: {
+              ga: {
+                value: memberZone,
+                config: {
+                  zoneType: "OpenClose",
+                  blocking: true
+                }
+              }
+            },
+            state: "CLOSED"
+          }
+        ]
+      }
+
+      expect(Device.getStatusReport(device, Device.getMembers(device))).toStrictEqual([{
+        blocking: true,
+        deviceTarget: "zone1",
+        priority: 1,
+        statusCode: "deviceOpen"
+      }, {
+        blocking: false,
+        deviceTarget: "zone2",
+        priority: 1,
+        statusCode: "motionDetected"
+      }]);
+    })
+  });
 
 });

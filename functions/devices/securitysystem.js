@@ -13,6 +13,8 @@ const configArmLevels = 'armLevels';
 
 const zoneTypeOpenClose = 'OpenClose';
 const zoneTypeMotion = 'Motion';
+const zoneConfigBlocking = 'blocking';
+const zoneConfigType = 'zoneType';
 
 const memberArmed = 'securitySystemArmed';
 const memberArmLevel = 'securitySystemArmLevel';
@@ -65,6 +67,8 @@ class SecuritySystem extends DefaultDevice {
       if (memberArmLevel in members) {
         return members[memberArmLevel].name;
       }
+      // Can't set an arm level if no arm level member defined
+      throw { statusCode: 400 };
     }
     if (memberArmed in members) {
       return members[memberArmed].name;
@@ -170,7 +174,7 @@ class SecuritySystem extends DefaultDevice {
     for (let zone of members.zones) {
       if (zoneStateActive.includes(zone.state)) {
         let code = errorNotSupported;
-        switch (zone.config.zoneType) {
+        switch (zone.config[zoneConfigType]) {
           case zoneTypeOpenClose: code = errorDeviceOpen; break;
           case zoneTypeMotion: code = errorMotionDetected; break;
         };

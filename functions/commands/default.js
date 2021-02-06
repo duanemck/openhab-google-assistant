@@ -193,7 +193,7 @@ class DefaultCommand {
     })
   }
 
-  static getItemState(device, expectedState) {
+  static getItemState(device, expectedState, apiHandler) {
     if (this.shouldGetLatestState()) {
       return apiHandler.getItem(device.id);
     }
@@ -254,7 +254,7 @@ class DefaultCommand {
           }
         return sendCommandPromise
           .then(() => this.delayPromise(device))
-          .then(() => this.getItemState(device, responseStates))
+          .then(() => this.getItemState(device, responseStates, apiHandler))
           .then((newState) => {
             const updateFailedResponse = this.checkUpdateFailed(params, newState, device);
             if (updateFailedResponse) {

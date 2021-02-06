@@ -16,7 +16,7 @@
     "test": "jest --silent --coverage",
     "test-ci": "jest --silent --coverage --ci",
     "lint": "eslint --ext .js --cache .",
-    "test-single": "jest tests/devices/securitysystem.test.js -t 'getAttributes'",
+    "test-single": "jest tests/commands/default.test.js -t 'execute with waiting for state change update'",
     "fix": "eslint --fix --ext .js --cache ."
   },
   "license": "EPL-2.0",
