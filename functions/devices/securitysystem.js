@@ -83,14 +83,16 @@ class SecuritySystem extends DefaultDevice {
     //Zone [zoneType="Motion", blocking=false]
 
     const config = this.getConfig(item);
+    if (!config || Object.keys(config).length === 0) {
+      return {};
+    }
     const ordered = configOrdered in config ? config.ordered : false;
     const language = configLang in config ? config.lang : defaultLanguage;
 
-    let attributes = {
-      availableArmLevels: { levels: [], ordered: ordered },
-    };
-
     if (configArmLevels in config) {
+      let attributes = {
+        availableArmLevels: { levels: [], ordered: ordered },
+      };
       attributes.availableArmLevels.levels = config.armLevels
         .split(',')
         .map(level => level.split('='))
@@ -104,8 +106,9 @@ class SecuritySystem extends DefaultDevice {
 
           }
         });
+      return attributes;
     }
-    return attributes;
+    return {};
   }
 
   static getMembers(item) {

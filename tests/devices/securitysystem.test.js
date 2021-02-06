@@ -115,7 +115,23 @@ describe('SecuritySystem Device', () => {
         }
       }
       const attributes = Device.getAttributes(device);
-      expect(attributes.availableArmLevels).toStrictEqual({});
+      expect(attributes).toStrictEqual({});
+
+    });
+
+    test('no arm levels defined', () => {
+      let device = {
+        metadata: {
+          ga: {
+            config: {
+              lang: "de",
+              ordered: true
+            }
+          }
+        }
+      }
+      const attributes = Device.getAttributes(device);
+      expect(attributes).toStrictEqual({});
 
     });
 
