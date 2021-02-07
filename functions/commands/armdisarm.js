@@ -46,10 +46,14 @@ class ArmDisarm extends DefaultCommand {
     return true;
   }
 
+  static shouldGetLatestState() {
+    return true;
+  }
+
   static validateStateChange(params, item, device) {
     const members = SecuritySystem.getMembers(item);
     const isCurrentlyArmed = members[SecuritySystem.armedMemberName].state === 'ON';
-    const currentLevel = members[SecuritySystem.armLevelMemberName].state;
+    const currentLevel = SecuritySystem.armLevelMemberName in members && members[SecuritySystem.armLevelMemberName].state;
 
     if (params.armLevel) {
       const alreadyArmedAtThisLevel = params.arm && isCurrentlyArmed && params.armLevel === currentLevel;
@@ -80,7 +84,7 @@ class ArmDisarm extends DefaultCommand {
   static checkUpdateFailed(params, item, device) {
     const members = SecuritySystem.getMembers(item);
     const isCurrentlyArmed = members[SecuritySystem.armedMemberName].state === 'ON';
-    const currentLevel = members[SecuritySystem.armLevelMemberName].state;
+    const currentLevel = SecuritySystem.armLevelMemberName in members ? members[SecuritySystem.armLevelMemberName].state : '';
 
     const armStatusSuccessful = params.arm === isCurrentlyArmed;
     const armLevelSuccessful = params.armLevel ? params.armLevel === currentLevel : true;

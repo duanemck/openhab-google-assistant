@@ -1,6 +1,7 @@
 const DefaultDevice = require('./default.js');
 
 // TODO:
+// Check for blocking zones before arming, send back in status report  https://developers.google.com/assistant/smarthome/guides/securitysystem#example:-non-blocking-exception
 // Option for pin on disarm only
 // Don't store the pin at Google in the customData
 // Report state
@@ -90,7 +91,7 @@ class SecuritySystem extends DefaultDevice {
     if (!config || Object.keys(config).length === 0) {
       return {};
     }
-    const ordered = configOrdered in config ? config.ordered : false;
+    const ordered = configOrdered in config && this.isTrueish(config.ordered);
     const language = configLang in config ? config.lang : defaultLanguage;
 
     if (configArmLevels in config) {
@@ -137,6 +138,10 @@ class SecuritySystem extends DefaultDevice {
     return members;
   }
 
+  static isTrueish(value) {
+    return value === true || value === 1 || (typeof value === 'string' && value.toLowerCase() === 'true');
+  }
+
   static getState(item) {
     const members = this.getMembers(item);
     let state = members[memberArmed].state === stateSwitchActive;
@@ -145,7 +150,7 @@ class SecuritySystem extends DefaultDevice {
       armLevel = members[memberArmLevel].state;
     }
 
-    if (this.getConfig(item).inverted === true) {
+    if (this.isTrueish(this.getConfig(item).inverted)) {
       state = !state;
     }
 
@@ -179,7 +184,7 @@ class SecuritySystem extends DefaultDevice {
           case zoneTypeMotion: code = errorMotionDetected; break;
         };
         report.push({
-          blocking: zone.config.blocking === true,
+          blocking: this.isTrueish(zone.config[zoneConfigBlocking]),
           deviceTarget: zone.name,
           priority: 1,
           statusCode: code
