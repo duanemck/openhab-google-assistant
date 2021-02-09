@@ -7,6 +7,10 @@ const DefaultDevice = require('./default.js');
 // Report state
 // Run locally
 // Pin and Ack case
+// Docs update
+// Openhab core update for new member types and config types
+// Write explainer comment on expected workflow when arming with levels/without levels
+// Remove response logging
 
 const configLang = 'lang';
 const configOrdered = 'ordered';
