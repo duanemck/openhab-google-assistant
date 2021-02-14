@@ -1,6 +1,7 @@
 const DefaultDevice = require('./default.js');
 
 // TODO:
+// Backwards compatible with Swithc
 // Check for blocking zones before arming, send back in status report  https://developers.google.com/assistant/smarthome/guides/securitysystem#example:-non-blocking-exception
 // Option for pin on disarm only
 // Don't store the pin at Google in the customData
@@ -56,6 +57,7 @@ class SecuritySystem extends DefaultDevice {
     return [
       'action.devices.traits.ArmDisarm',
       'action.devices.traits.StatusReport'
+    ];
   }
 
   static get armedMemberName() {
@@ -82,7 +84,7 @@ class SecuritySystem extends DefaultDevice {
   }
 
   static matchesItemType(item) {
-    return item.type === 'Group' && Object.keys(this.getMembers(item)).length > 0;
+    return item.type === 'Switch' || (item.type === 'Group' && Object.keys(this.getMembers(item)).length > 0);
   }
 
   static getAttributes(item) {

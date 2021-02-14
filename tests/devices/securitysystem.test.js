@@ -100,10 +100,15 @@ describe('SecuritySystem Device', () => {
             state: "ON"
           }
         ],
+        metadata: {
+          ga: {
+            config: {
+              inverted: true
             }
           }
-        }
+        },
       };
+
       expect(Device.getState(item)).toStrictEqual({
         "isArmed": false,
         "currentArmLevel": undefined,
