@@ -36,7 +36,7 @@ class DefaultCommand {
 
   /**
    * Must the state change be checked before applying?
-   * @returns {boolean} 
+   * @returns {boolean}
    */
   static shouldValidateStateChange() {
     return false;
@@ -64,11 +64,11 @@ class DefaultCommand {
    * Get the new state to be returned to Google Home
    * @param {object} params Original command params received
    * @param {object} item The state of the item after executing the command
-   * @param {object} device Google Home Graph device 
+   * @param {object} device Google Home Graph device
    * @return {object} New state to send to Google in the response
    */
   static getNewState(params, item, device) {
-    return this.getResponseStates(params, item, device)
+    return this.getResponseStates(params, item, device);
   }
 
   static shouldGetLatestState() {
@@ -76,10 +76,10 @@ class DefaultCommand {
   }
 
   /**
-   * Check if new state is as expected. 
-   * @param {object} params 
-   * @param {object} item 
-   * @param {object} device 
+   * Check if new state is as expected.
+   * @param {object} params
+   * @param {object} item
+   * @param {object} device
    * @return {object} Error message if state update failed. Null if all ok.
    */
   static checkUpdateFailed(params, item, device) {
@@ -118,7 +118,7 @@ class DefaultCommand {
 
   /**
    * Wait x seconds for the state to update within OpenHab
-   * @param {object} device Google Home Graph device 
+   * @param {object} device Google Home Graph device
    * @returns {number} Seconds to wait before querying state. 0 if disabled
    */
   static waitForStateChange(device) {
@@ -192,9 +192,8 @@ class DefaultCommand {
       setTimeout(() => {
         console.log(`Finished Waiting`);
         resolve();
-      }, secondsToWait * 1000
-      )
-    })
+      }, secondsToWait * 1000);
+    });
   }
 
   static getItemState(device, expectedState, apiHandler) {
@@ -225,7 +224,7 @@ class DefaultCommand {
         device.customData &&
         (device.customData.ackNeeded || device.customData.tfaAck) &&
         !challenge.ack;
-        
+
       const confirmStateChange = this.shouldValidateStateChange();
 
       let getItemPromise = Promise.resolve({ name: device.id });
@@ -240,13 +239,13 @@ class DefaultCommand {
             responseStates.online = true;
           }
 
-        if (confirmStateChange) {
-          const preCheckResponse = this.validateStateChange(params, item, device);
-          if (preCheckResponse) {
-            commandsResponse.push(preCheckResponse);
-            return;
+          if (confirmStateChange) {
+            const preCheckResponse = this.validateStateChange(params, item, device);
+            if (preCheckResponse) {
+              commandsResponse.push(preCheckResponse);
+              return;
+            }
           }
-        }
 
           const authAckResponse = this.handleAuthAck(device, challenge, responseStates);
           if (authAckResponse) {
@@ -254,33 +253,35 @@ class DefaultCommand {
             return;
           }
 
-        const targetItem = this.getItemName(item, device, params);
+          const targetItem = this.getItemName(item, device, params);
           const targetValue = this.convertParamsToValue(params, item, device);
           let sendCommandPromise = Promise.resolve();
           if (typeof targetItem === 'string' && typeof targetValue === 'string') {
             sendCommandPromise = apiHandler.sendCommand(targetItem, targetValue);
           }
-        return sendCommandPromise
-          .then(() => this.delayPromise(device))
-          .then(() => this.getItemState(device, responseStates, apiHandler))
-          .then((newState) => {
-            const updateFailedResponse = this.checkUpdateFailed(params, newState, device);
-            if (updateFailedResponse) {
-              commandsResponse.push(updateFailedResponse);
-              return;
-            }
-            let updatedResponseState = this.shouldGetLatestState() ? this.getNewState(params, newState, device) : responseStates;
-            updatedResponseState.online = true;
-            commandsResponse.push({
-              ids: [device.id],
-              status: 'SUCCESS',
-              states: updatedResponseState
+          return sendCommandPromise
+            .then(() => this.delayPromise(device))
+            .then(() => this.getItemState(device, responseStates, apiHandler))
+            .then((newState) => {
+              const updateFailedResponse = this.checkUpdateFailed(params, newState, device);
+              if (updateFailedResponse) {
+                commandsResponse.push(updateFailedResponse);
+                return;
+              }
+              let updatedResponseState = this.shouldGetLatestState()
+                ? this.getNewState(params, newState, device)
+                : responseStates;
+              updatedResponseState.online = true;
+              commandsResponse.push({
+                ids: [device.id],
+                status: 'SUCCESS',
+                states: updatedResponseState
+              });
             });
-          });
         })
         .catch((error) => {
-        console.error(`openhabGoogleAssistant - ${this.type}: ERROR ${error}`);
-        console.error(error.stack);
+          console.error(`openhabGoogleAssistant - ${this.type}: ERROR ${error}`);
+          console.error(error.stack);
           commandsResponse.push({
             ids: [device.id],
             status: 'ERROR',

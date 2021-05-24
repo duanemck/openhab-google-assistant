@@ -1,4 +1,5 @@
 const Device = require('../../functions/devices/default.js');
+const packageVersion = require('../../package.json').version;
 
 describe('Default Device', () => {
   const item = {
@@ -12,8 +13,7 @@ describe('Default Device', () => {
         config: {
           inverted: true,
           ackNeeded: true,
-          pinNeeded: '1234',
-          "waitForStateChange": 9
+          pinNeeded: '1234'
         }
       },
       synonyms: {
@@ -26,8 +26,7 @@ describe('Default Device', () => {
     expect(Device.getConfig(item)).toStrictEqual({
       ackNeeded: true,
       inverted: true,
-      pinNeeded: '1234',
-      "waitForStateChange": 9
+      pinNeeded: '1234'
     });
   });
 
@@ -43,14 +42,13 @@ describe('Default Device', () => {
         deviceType: 'DefaultDevice',
         inverted: true,
         itemType: 'Number',
-        pinNeeded: '1234',
-        "waitForStateChange": 9
+        pinNeeded: '1234'
       },
       deviceInfo: {
-        hwVersion: '2.5.0',
         manufacturer: 'openHAB',
         model: 'Number:DefaultDevice',
-        swVersion: '2.5.0'
+        hwVersion: '3.0.0',
+        swVersion: packageVersion
       },
       id: 'DefaultDevice',
       name: {

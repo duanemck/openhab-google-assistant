@@ -20,11 +20,9 @@ describe('SecuritySystem Device', () => {
   });
 
   test('getTraits', () => {
-    expect(Device.getTraits()).toStrictEqual([
-      'action.devices.traits.ArmDisarm',
-      'action.devices.traits.StatusReport'
-    ]);
+    expect(Device.getTraits()).toStrictEqual(['action.devices.traits.ArmDisarm', 'action.devices.traits.StatusReport']);
   });
+
   describe('getState', () => {
     test('getState', () => {
       let device = {
@@ -35,21 +33,21 @@ describe('SecuritySystem Device', () => {
                 value: Device.armedMemberName
               }
             },
-            state: "ON"
+            state: 'ON'
           }
         ]
-      }
+      };
       expect(Device.getState(device)).toStrictEqual({
-        "isArmed": true,
-        "currentArmLevel": undefined,
-        "currentStatusReport": []
+        isArmed: true,
+        currentArmLevel: undefined,
+        currentStatusReport: []
       });
-      device.members[0].state = "OFF";
+      device.members[0].state = 'OFF';
 
       expect(Device.getState(device)).toStrictEqual({
-        "isArmed": false,
-        "currentArmLevel": undefined,
-        "currentStatusReport": []
+        isArmed: false,
+        currentArmLevel: undefined,
+        currentStatusReport: []
       });
     });
 
@@ -62,7 +60,7 @@ describe('SecuritySystem Device', () => {
                 value: Device.armedMemberName
               }
             },
-            state: "ON"
+            state: 'ON'
           },
           {
             metadata: {
@@ -70,21 +68,21 @@ describe('SecuritySystem Device', () => {
                 value: Device.armLevelMemberName
               }
             },
-            state: "L1"
+            state: 'L1'
           }
         ]
-      }
+      };
       expect(Device.getState(device)).toStrictEqual({
-        "isArmed": true,
-        "currentArmLevel": "L1",
-        "currentStatusReport": []
+        isArmed: true,
+        currentArmLevel: 'L1',
+        currentStatusReport: []
       });
-      device.members[0].state = "OFF";
+      device.members[0].state = 'OFF';
 
       expect(Device.getState(device)).toStrictEqual({
-        "isArmed": false,
-        "currentArmLevel": undefined,
-        "currentStatusReport": []
+        isArmed: false,
+        currentArmLevel: undefined,
+        currentStatusReport: []
       });
     });
 
@@ -97,7 +95,7 @@ describe('SecuritySystem Device', () => {
                 value: Device.armedMemberName
               }
             },
-            state: "ON"
+            state: 'ON'
           }
         ],
         metadata: {
@@ -106,13 +104,13 @@ describe('SecuritySystem Device', () => {
               inverted: true
             }
           }
-        },
+        }
       };
 
       expect(Device.getState(item)).toStrictEqual({
-        "isArmed": false,
-        "currentArmLevel": undefined,
-        "currentStatusReport": []
+        isArmed: false,
+        currentArmLevel: undefined,
+        currentStatusReport: []
       });
     });
   });
@@ -128,7 +126,7 @@ describe('SecuritySystem Device', () => {
                 value: Device.armedMemberName
               }
             },
-            state: "ON"
+            state: 'ON'
           },
           {
             name: 'armLevel',
@@ -137,13 +135,12 @@ describe('SecuritySystem Device', () => {
                 value: Device.armLevelMemberName
               }
             },
-            state: "L1"
+            state: 'L1'
           }
         ]
-      }
-      expect(Device.getMemberToSendArmCommand(device, { 'arm': true })).toBe('armed');
-      expect(Device.getMemberToSendArmCommand(device, { 'arm': true, armLevel: 'L1' })).toBe('armLevel');
-
+      };
+      expect(Device.getMemberToSendArmCommand(device, { arm: true })).toBe('armed');
+      expect(Device.getMemberToSendArmCommand(device, { arm: true, armLevel: 'L1' })).toBe('armLevel');
     });
 
     test('missing armLevel member', () => {
@@ -156,24 +153,22 @@ describe('SecuritySystem Device', () => {
                 value: Device.armedMemberName
               }
             },
-            state: "ON"
+            state: 'ON'
           }
-
         ]
-      }
+      };
       expect(() => {
-        Device.getMemberToSendArmCommand(device, { 'arm': true, armLevel: 'L1' });
+        Device.getMemberToSendArmCommand(device, { arm: true, armLevel: 'L1' });
       }).toThrow();
-
     });
 
     test('missing armed member', () => {
-      let device = { members: [] }
+      let device = { members: [] };
       expect(() => {
-        Device.getMemberToSendArmCommand(device, { 'arm': true, armLevel: 'L1' });
+        Device.getMemberToSendArmCommand(device, { arm: true, armLevel: 'L1' });
       }).toThrow();
       expect(() => {
-        Device.getMemberToSendArmCommand(device, { 'arm': true });
+        Device.getMemberToSendArmCommand(device, { arm: true });
       }).toThrow();
     });
   });
@@ -183,14 +178,12 @@ describe('SecuritySystem Device', () => {
       let device = {
         metadata: {
           ga: {
-            config: {
-            }
+            config: {}
           }
         }
-      }
+      };
       const attributes = Device.getAttributes(device);
       expect(attributes).toStrictEqual({});
-
     });
 
     test('no arm levels defined', () => {
@@ -198,15 +191,14 @@ describe('SecuritySystem Device', () => {
         metadata: {
           ga: {
             config: {
-              lang: "de",
+              lang: 'de',
               ordered: true
             }
           }
         }
-      }
+      };
       const attributes = Device.getAttributes(device);
       expect(attributes).toStrictEqual({});
-
     });
 
     test('armLevels, 1 level with lang and ordered set', () => {
@@ -214,33 +206,31 @@ describe('SecuritySystem Device', () => {
         metadata: {
           ga: {
             config: {
-              armLevels: "L1=Stay",
-              lang: "de",
+              armLevels: 'L1=Stay',
+              lang: 'de',
               ordered: true
             }
           }
         }
-      }
+      };
       const attributes = Device.getAttributes(device);
       expect(attributes.availableArmLevels).toBeDefined();
       expect(attributes.availableArmLevels.ordered).toBe(true);
 
-      expect(attributes?.availableArmLevels?.levels).toBeDefined();
+      expect(attributes.availableArmLevels.levels).toBeDefined();
       const levels = attributes.availableArmLevels.levels;
 
-      expect(levels).toStrictEqual(
-        [
-          {
-            "level_name": "L1",
-            "level_values": [
-              {
-                "level_synonym": ["Stay"],
-                "lang": "de"
-              }
-            ]
-          }
-        ]);
-
+      expect(levels).toStrictEqual([
+        {
+          level_name: 'L1',
+          level_values: [
+            {
+              level_synonym: ['Stay'],
+              lang: 'de'
+            }
+          ]
+        }
+      ]);
     });
 
     test('armLevels, 1 level with default ordered value', () => {
@@ -248,12 +238,12 @@ describe('SecuritySystem Device', () => {
         metadata: {
           ga: {
             config: {
-              armLevels: "L1=Stay",
-              lang: "en"
+              armLevels: 'L1=Stay',
+              lang: 'en'
             }
           }
         }
-      }
+      };
       const attributes = Device.getAttributes(device);
       expect(attributes.availableArmLevels).toBeDefined();
       expect(attributes.availableArmLevels.ordered).toBe(false);
@@ -264,29 +254,27 @@ describe('SecuritySystem Device', () => {
         metadata: {
           ga: {
             config: {
-              armLevels: "L1=Stay"
+              armLevels: 'L1=Stay'
             }
           }
         }
-      }
+      };
       const attributes = Device.getAttributes(device);
 
-      expect(attributes?.availableArmLevels?.levels).toBeDefined();
+      expect(attributes.availableArmLevels.levels).toBeDefined();
       const levels = attributes.availableArmLevels.levels;
 
-      expect(levels).toStrictEqual(
-        [
-          {
-            "level_name": "L1",
-            "level_values": [
-              {
-                "level_synonym": ["Stay"],
-                "lang": "en"
-              }
-            ]
-          }
-        ]);
-
+      expect(levels).toStrictEqual([
+        {
+          level_name: 'L1',
+          level_values: [
+            {
+              level_synonym: ['Stay'],
+              lang: 'en'
+            }
+          ]
+        }
+      ]);
     });
 
     test('armLevels, multiple levels', () => {
@@ -294,49 +282,49 @@ describe('SecuritySystem Device', () => {
         metadata: {
           ga: {
             config: {
-              armLevels: "L1=Stay,L2=Night,L3=Away",
-              lang: "en",
+              armLevels: 'L1=Stay,L2=Night,L3=Away',
+              lang: 'en',
               ordered: true
             }
           }
         }
-      }
+      };
       const attributes = Device.getAttributes(device);
       expect(attributes.availableArmLevels).toBeDefined();
       expect(attributes.availableArmLevels.ordered).toBe(true);
 
-      expect(attributes?.availableArmLevels?.levels).toBeDefined();
+      expect(attributes.availableArmLevels.levels).toBeDefined();
       const levels = attributes.availableArmLevels.levels;
 
-      expect(levels).toStrictEqual(
-        [
-          {
-            "level_name": "L1",
-            "level_values": [
-              {
-                "level_synonym": ["Stay"],
-                "lang": "en"
-              }
-            ]
-          }, {
-            "level_name": "L2",
-            "level_values": [
-              {
-                "level_synonym": ["Night"],
-                "lang": "en"
-              }
-            ]
-          }, {
-            "level_name": "L3",
-            "level_values": [
-              {
-                "level_synonym": ["Away"],
-                "lang": "en"
-              }
-            ]
-          }
-        ]);
-
+      expect(levels).toStrictEqual([
+        {
+          level_name: 'L1',
+          level_values: [
+            {
+              level_synonym: ['Stay'],
+              lang: 'en'
+            }
+          ]
+        },
+        {
+          level_name: 'L2',
+          level_values: [
+            {
+              level_synonym: ['Night'],
+              lang: 'en'
+            }
+          ]
+        },
+        {
+          level_name: 'L3',
+          level_values: [
+            {
+              level_synonym: ['Away'],
+              lang: 'en'
+            }
+          ]
+        }
+      ]);
     });
   });
 
@@ -357,17 +345,17 @@ describe('SecuritySystem Device', () => {
                 value: memberArmed
               }
             },
-            state: "ON"
+            state: 'ON'
           },
           {
             name: 'someOtherMember',
-            state: "L1"
+            state: 'L1'
           }
         ]
-      }
+      };
       const members = Device.getMembers(device);
       let expectedMembers = { zones: [] };
-      expectedMembers[memberArmed] = { name: "armed", state: "ON", config: {} }
+      expectedMembers[memberArmed] = { name: 'armed', state: 'ON', config: {} };
 
       expect(members).toStrictEqual(expectedMembers);
     });
@@ -382,17 +370,16 @@ describe('SecuritySystem Device', () => {
                 value: 'someOtherMember'
               }
             },
-            state: "ON"
+            state: 'ON'
           }
         ]
-      }
+      };
       const members = Device.getMembers(device);
       let expectedMembers = { zones: [] };
       expect(members).toStrictEqual(expectedMembers);
     });
 
     test('all possible members defined with no extra config', () => {
-
       let device = {
         members: [
           {
@@ -402,7 +389,7 @@ describe('SecuritySystem Device', () => {
                 value: memberArmed
               }
             },
-            state: "ON"
+            state: 'ON'
           },
           {
             name: 'armLevel',
@@ -411,7 +398,7 @@ describe('SecuritySystem Device', () => {
                 value: memberArmLevel
               }
             },
-            state: "L1"
+            state: 'L1'
           },
           {
             name: 'trouble',
@@ -420,7 +407,7 @@ describe('SecuritySystem Device', () => {
                 value: memberTrouble
               }
             },
-            state: "OFF"
+            state: 'OFF'
           },
           {
             name: 'errorCode',
@@ -429,7 +416,7 @@ describe('SecuritySystem Device', () => {
                 value: memberErrorCode
               }
             },
-            state: "ErrorCode123"
+            state: 'ErrorCode123'
           },
           {
             name: 'zone1',
@@ -438,22 +425,21 @@ describe('SecuritySystem Device', () => {
                 value: memberZone
               }
             },
-            state: "OPEN"
+            state: 'OPEN'
           }
         ]
-      }
+      };
       const members = Device.getMembers(device);
       let expectedMembers = {};
-      expectedMembers[memberArmed] = { name: "armed", state: "ON", config: {} }
-      expectedMembers[memberArmLevel] = { name: "armLevel", state: "L1", config: {} }
-      expectedMembers[memberTrouble] = { name: "trouble", state: "OFF", config: {} }
-      expectedMembers[memberErrorCode] = { name: "errorCode", state: "ErrorCode123", config: {} }
-      expectedMembers.zones = [{ name: "zone1", state: "OPEN", config: {} }]
+      expectedMembers[memberArmed] = { name: 'armed', state: 'ON', config: {} };
+      expectedMembers[memberArmLevel] = { name: 'armLevel', state: 'L1', config: {} };
+      expectedMembers[memberTrouble] = { name: 'trouble', state: 'OFF', config: {} };
+      expectedMembers[memberErrorCode] = { name: 'errorCode', state: 'ErrorCode123', config: {} };
+      expectedMembers.zones = [{ name: 'zone1', state: 'OPEN', config: {} }];
       expect(members).toStrictEqual(expectedMembers);
     });
 
     test('bare minimum members', () => {
-
       let device = {
         members: [
           {
@@ -463,21 +449,19 @@ describe('SecuritySystem Device', () => {
                 value: memberArmed
               }
             },
-            state: "ON"
+            state: 'ON'
           }
         ]
-      }
+      };
       const members = Device.getMembers(device);
       let expectedMembers = { zones: [] };
-      expectedMembers[memberArmed] = { name: "armed", state: "ON", config: {} }
+      expectedMembers[memberArmed] = { name: 'armed', state: 'ON', config: {} };
       expect(members).toStrictEqual(expectedMembers);
     });
 
     test('zones with extra config', () => {
-
       let device = {
         members: [
-
           {
             name: 'zone1',
             metadata: {
@@ -486,17 +470,16 @@ describe('SecuritySystem Device', () => {
                 config: { zoneType: 'OpenClose' }
               }
             },
-            state: "OPEN"
+            state: 'OPEN'
           }
         ]
-      }
+      };
       const members = Device.getMembers(device);
       let expectedMembers = {};
-      expectedMembers.zones = [{ name: "zone1", state: "OPEN", config: { zoneType: "OpenClose" } }]
+      expectedMembers.zones = [{ name: 'zone1', state: 'OPEN', config: { zoneType: 'OpenClose' } }];
       expect(members).toStrictEqual(expectedMembers);
     });
   });
-
 
   describe('getStatusReport', () => {
     const memberZone = 'securitySystemZone';
@@ -504,9 +487,8 @@ describe('SecuritySystem Device', () => {
     const memberErrorCode = 'securitySystemTroubleCode';
 
     test('trouble', () => {
-
       let device = {
-        name: "alarm",
+        name: 'alarm',
         members: [
           {
             name: 'trouble',
@@ -515,7 +497,7 @@ describe('SecuritySystem Device', () => {
                 value: memberTrouble
               }
             },
-            state: "ON"
+            state: 'ON'
           },
           {
             name: 'errorCode',
@@ -524,21 +506,23 @@ describe('SecuritySystem Device', () => {
                 value: memberErrorCode
               }
             },
-            state: "ErrorCode123"
+            state: 'ErrorCode123'
           }
         ]
-      }
-      expect(Device.getStatusReport(device, Device.getMembers(device))).toStrictEqual([{
-        blocking: false,
-        deviceTarget: "alarm",
-        priority: 0,
-        statusCode: "ErrorCode123"
-      }]);
+      };
+      expect(Device.getStatusReport(device, Device.getMembers(device))).toStrictEqual([
+        {
+          blocking: false,
+          deviceTarget: 'alarm',
+          priority: 0,
+          statusCode: 'ErrorCode123'
+        }
+      ]);
     });
 
     test('zones', () => {
       let device = {
-        name: "alarm",
+        name: 'alarm',
         members: [
           {
             name: 'zone1',
@@ -546,12 +530,12 @@ describe('SecuritySystem Device', () => {
               ga: {
                 value: memberZone,
                 config: {
-                  zoneType: "OpenClose",
+                  zoneType: 'OpenClose',
                   blocking: true
                 }
               }
             },
-            state: "OPEN"
+            state: 'OPEN'
           },
           {
             name: 'zone2',
@@ -559,12 +543,12 @@ describe('SecuritySystem Device', () => {
               ga: {
                 value: memberZone,
                 config: {
-                  zoneType: "Motion",
+                  zoneType: 'Motion',
                   blocking: false
                 }
               }
             },
-            state: "OPEN"
+            state: 'OPEN'
           },
           {
             name: 'zone3',
@@ -572,28 +556,30 @@ describe('SecuritySystem Device', () => {
               ga: {
                 value: memberZone,
                 config: {
-                  zoneType: "OpenClose",
+                  zoneType: 'OpenClose',
                   blocking: true
                 }
               }
             },
-            state: "CLOSED"
+            state: 'CLOSED'
           }
         ]
-      }
+      };
 
-      expect(Device.getStatusReport(device, Device.getMembers(device))).toStrictEqual([{
-        blocking: true,
-        deviceTarget: "zone1",
-        priority: 1,
-        statusCode: "deviceOpen"
-      }, {
-        blocking: false,
-        deviceTarget: "zone2",
-        priority: 1,
-        statusCode: "motionDetected"
-      }]);
-    })
+      expect(Device.getStatusReport(device, Device.getMembers(device))).toStrictEqual([
+        {
+          blocking: true,
+          deviceTarget: 'zone1',
+          priority: 1,
+          statusCode: 'deviceOpen'
+        },
+        {
+          blocking: false,
+          deviceTarget: 'zone2',
+          priority: 1,
+          statusCode: 'motionDetected'
+        }
+      ]);
+    });
   });
-
 });

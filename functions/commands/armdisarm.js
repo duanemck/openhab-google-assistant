@@ -34,8 +34,8 @@ class ArmDisarm extends DefaultCommand {
 
   static getResponseStates(params) {
     let response = {
-      isArmed: params.arm,
-    }
+      isArmed: params.arm
+    };
     if (params.armLevel) {
       response.currentArmLevel = params.armLevel;
     }
@@ -53,7 +53,8 @@ class ArmDisarm extends DefaultCommand {
   static validateStateChange(params, item, device) {
     const members = SecuritySystem.getMembers(item);
     const isCurrentlyArmed = members[SecuritySystem.armedMemberName].state === 'ON';
-    const currentLevel = SecuritySystem.armLevelMemberName in members && members[SecuritySystem.armLevelMemberName].state;
+    const currentLevel =
+      SecuritySystem.armLevelMemberName in members && members[SecuritySystem.armLevelMemberName].state;
 
     if (params.armLevel) {
       const alreadyArmedAtThisLevel = params.arm && isCurrentlyArmed && params.armLevel === currentLevel;
@@ -70,7 +71,6 @@ class ArmDisarm extends DefaultCommand {
     if (!params.arm && !isCurrentlyArmed) {
       return this.getErrorMessage(device, 'alreadyDisarmed');
     }
-
   }
 
   static getErrorMessage(device, errorCode) {
@@ -78,13 +78,14 @@ class ArmDisarm extends DefaultCommand {
       ids: [device.id],
       status: 'ERROR',
       errorCode
-    }
+    };
   }
 
   static checkUpdateFailed(params, item, device) {
     const members = SecuritySystem.getMembers(item);
     const isCurrentlyArmed = members[SecuritySystem.armedMemberName].state === 'ON';
-    const currentLevel = SecuritySystem.armLevelMemberName in members ? members[SecuritySystem.armLevelMemberName].state : '';
+    const currentLevel =
+      SecuritySystem.armLevelMemberName in members ? members[SecuritySystem.armLevelMemberName].state : '';
 
     const armStatusSuccessful = params.arm === isCurrentlyArmed;
     const armLevelSuccessful = params.armLevel ? params.armLevel === currentLevel : true;
@@ -96,12 +97,12 @@ class ArmDisarm extends DefaultCommand {
     return this.getErrorMessage(device, params.arm ? 'armFailure' : 'disarmFailure');
   }
 
-  static getNewState(params, item, device) {
+  static getNewState(params, item) {
     const members = SecuritySystem.getMembers(item);
     let response = {
       online: true,
       isArmed: members[SecuritySystem.armedMemberName].state === 'ON'
-    }
+    };
     if (params.armLevel) {
       response.currentArmLevel = members[SecuritySystem.armLevelMemberName].state;
     }

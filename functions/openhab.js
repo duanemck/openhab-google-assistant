@@ -86,8 +86,6 @@ class OpenHAB {
       devices: []
     }));
 
-    console.log(`openhabGoogleAssistant - handleSync - response: ${JSON.stringify(payload)}`);
-
     return {
       requestId: body.requestId,
       payload: payload
@@ -112,8 +110,6 @@ class OpenHAB {
       devices: {}
     }));
 
-    console.log(`openhabGoogleAssistant - handleQuery - response: ${JSON.stringify(payload)}`);
-
     return {
       requestId: body.requestId,
       payload: payload
@@ -137,8 +133,6 @@ class OpenHAB {
       status: 'ERROR',
       commands: []
     }));
-
-    console.log(`openhabGoogleAssistant - handleExecute - response: ${JSON.stringify(payload)}`);
 
     return {
       requestId: body.requestId,

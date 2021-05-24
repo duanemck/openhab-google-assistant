@@ -28,13 +28,7 @@ const memberZone = 'securitySystemZone';
 const memberTrouble = 'securitySystemTrouble';
 const memberErrorCode = 'securitySystemTroubleCode';
 
-const supportedMembers = [
-  memberArmed,
-  memberArmLevel,
-  memberZone,
-  memberTrouble,
-  memberErrorCode
-];
+const supportedMembers = [memberArmed, memberArmLevel, memberZone, memberTrouble, memberErrorCode];
 
 const errorNotSupported = 'notSupported';
 const errorDeviceOpen = 'deviceOpen';
@@ -48,16 +42,12 @@ const stateContactActive = 'OPEN';
 const zoneStateActive = [stateSwitchActive, stateContactActive];
 
 class SecuritySystem extends DefaultDevice {
-
   static get type() {
     return 'action.devices.types.SECURITYSYSTEM';
   }
 
   static getTraits() {
-    return [
-      'action.devices.traits.ArmDisarm',
-      'action.devices.traits.StatusReport'
-    ];
+    return ['action.devices.traits.ArmDisarm', 'action.devices.traits.StatusReport'];
   }
 
   static get armedMemberName() {
@@ -88,7 +78,6 @@ class SecuritySystem extends DefaultDevice {
   }
 
   static getAttributes(item) {
-
     //Group [armLevels="L1=Stay,L2=Away", lang="en", ordered=true]
     //Zone [zoneType="OpenClose", blocking=true]
     //Zone [zoneType="Motion", blocking=false]
@@ -102,20 +91,21 @@ class SecuritySystem extends DefaultDevice {
 
     if (configArmLevels in config) {
       let attributes = {
-        availableArmLevels: { levels: [], ordered: ordered },
+        availableArmLevels: { levels: [], ordered: ordered }
       };
       attributes.availableArmLevels.levels = config.armLevels
         .split(',')
-        .map(level => level.split('='))
+        .map((level) => level.split('='))
         .map(([levelName, levelSynonym]) => {
           return {
             level_name: levelName,
-            level_values: [{
-              level_synonym: [levelSynonym],
-              lang: language
-            }]
-
-          }
+            level_values: [
+              {
+                level_synonym: [levelSynonym],
+                lang: language
+              }
+            ]
+          };
         });
       return attributes;
     }
@@ -127,9 +117,9 @@ class SecuritySystem extends DefaultDevice {
       zones: []
     };
     if (item.members && item.members.length) {
-      item.members.forEach(member => {
+      item.members.forEach((member) => {
         if (member.metadata && member.metadata.ga) {
-          const memberType = supportedMembers.find(m => member.metadata.ga.value.toLowerCase() === m.toLowerCase());
+          const memberType = supportedMembers.find((m) => member.metadata.ga.value.toLowerCase() === m.toLowerCase());
           if (memberType) {
             const memberDetails = { name: member.name, state: member.state, config: this.getConfig(member) };
             if (memberType === memberZone) {
@@ -180,26 +170,29 @@ class SecuritySystem extends DefaultDevice {
         priority: 0,
         statusCode: troubleCode
       });
-    };
+    }
 
     for (let zone of members.zones) {
       if (zoneStateActive.includes(zone.state)) {
         let code = errorNotSupported;
         switch (zone.config[zoneConfigType]) {
-          case zoneTypeOpenClose: code = errorDeviceOpen; break;
-          case zoneTypeMotion: code = errorMotionDetected; break;
-        };
+          case zoneTypeOpenClose:
+            code = errorDeviceOpen;
+            break;
+          case zoneTypeMotion:
+            code = errorMotionDetected;
+            break;
+        }
         report.push({
           blocking: this.isTrueish(zone.config[zoneConfigBlocking]),
           deviceTarget: zone.name,
           priority: 1,
           statusCode: code
-        })
+        });
       }
     }
     return report;
   }
-
 }
 
 module.exports = SecuritySystem;
