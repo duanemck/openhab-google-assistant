@@ -70,6 +70,54 @@ describe('OpenHAB', () => {
     });
   });
 
+  test('setTokenFromHeader', () => {
+    const openHAB = new OpenHAB({ authToken: "" });
+    openHAB.setTokenFromHeader({});
+    expect(openHAB._apiHandler.authToken).toBe(null);
+    openHAB.setTokenFromHeader({ "authorization": "Bearer token" });
+    expect(openHAB._apiHandler.authToken).toBe("token");
+  });
+
+  test('onDisconnect', () => {
+    const openHAB = new OpenHAB({});
+    expect(openHAB.onDisconnect()).toStrictEqual({});
+  });
+
+  describe('onSync', () => {
+    const openHAB = new OpenHAB({});
+
+    beforeEach(() => {
+      jest.spyOn(openHAB, 'handleSync').mockReset();
+    });
+
+    test('onSync failure', async () => {
+      const handleSyncMock = jest.spyOn(openHAB, 'handleSync');
+      handleSyncMock.mockReturnValue(Promise.reject());
+      const result = await openHAB.onSync({ requestId: '1234' }, {});
+      expect(handleSyncMock).toBeCalledTimes(1);
+      expect(result).toStrictEqual({
+        requestId: '1234',
+        payload: {
+          devices: [],
+          errorCode: 'actionNotAvailable',
+          status: 'ERROR'
+        }
+      });
+    });
+
+    test('onSync empty', async () => {
+      const handleSyncMock = jest.spyOn(openHAB, 'handleSync');
+      const payload = { devices: [] };
+      handleSyncMock.mockReturnValue(Promise.resolve(payload));
+      const result = await openHAB.onSync({ requestId: '1234' }, {});
+      expect(handleSyncMock).toBeCalledTimes(1);
+      expect(result).toStrictEqual({
+        requestId: '1234',
+        payload: payload
+      });
+    });
+  });
+
   describe('handleSync', () => {
     const getItemsMock = jest.fn();
 
@@ -219,6 +267,68 @@ describe('OpenHAB', () => {
             willReportState: false
           }
         ]
+      });
+    });
+  });
+
+  describe('onQuery', () => {
+    const openHAB = new OpenHAB({});
+
+    beforeEach(() => {
+      jest.spyOn(openHAB, 'handleQuery').mockReset();
+    });
+
+    test('onQuery failure', async () => {
+      const handleQueryMock = jest.spyOn(openHAB, 'handleQuery');
+      handleQueryMock.mockReturnValue(Promise.reject());
+      const result = await openHAB.onQuery({ requestId: '1234' }, {});
+      expect(handleQueryMock).toBeCalledTimes(1);
+      expect(handleQueryMock).toBeCalledWith([]);
+      expect(result).toStrictEqual({
+        requestId: '1234',
+        payload: {
+          devices: {},
+          errorCode: 'actionNotAvailable',
+          status: 'ERROR'
+        }
+      });
+    });
+
+    test('onQuery empty', async () => {
+      const handleQueryMock = jest.spyOn(openHAB, 'handleQuery');
+      const payload = { devices: {} };
+      handleQueryMock.mockReturnValue(Promise.resolve(payload));
+      const result = await openHAB.onQuery({ requestId: '1234' }, {});
+      expect(handleQueryMock).toBeCalledTimes(1);
+      expect(handleQueryMock).toBeCalledWith([]);
+      expect(result).toStrictEqual({
+        requestId: '1234',
+        payload: payload
+      });
+    });
+
+    test('onQuery', async () => {
+      const handleQueryMock = jest.spyOn(openHAB, 'handleQuery');
+      const payload = { devices: {} };
+      handleQueryMock.mockReturnValue(Promise.resolve(payload));
+      const devices = [{ id: 'TestItem1' }, { id: 'TestItem2' }];
+      const body = {
+        requestId: '1234',
+        inputs: [
+          {
+            intent: 'action.devices.QUERY',
+            payload: {
+              devices: devices
+            }
+          }
+        ]
+      };
+      const result = await openHAB.onQuery(body, {});
+      expect(handleQueryMock).toBeCalledTimes(1);
+      expect(handleQueryMock).toBeCalledWith(devices);
+      expect(result).toStrictEqual({
+        requestId: '1234',
+        payload: payload
       });
     });
   });
@@ -438,6 +548,78 @@ describe('OpenHAB', () => {
             online: true
           }
         }
+      });
+    });
+  });
+
+  describe('onExecute', () => {
+    const openHAB = new OpenHAB({});
+
+    beforeEach(() => {
+      jest.spyOn(openHAB, 'handleExecute').mockReset();
+    });
+
+    test('onExecute failure', async () => {
+      const handleExecuteMock = jest.spyOn(openHAB, 'handleExecute');
+      handleExecuteMock.mockReturnValue(Promise.reject());
+      const result = await openHAB.onExecute({ requestId: '1234' }, {});
+      expect(handleExecuteMock).toBeCalledTimes(1);
+      expect(handleExecuteMock).toBeCalledWith([]);
+      expect(result).toStrictEqual({
+        requestId: '1234',
+        payload: {
+          commands: [],
+          errorCode: 'actionNotAvailable',
+          status: 'ERROR'
+        }
+      });
+    });
+
+    test('onExecute empty', async () => {
+      const handleExecuteMock = jest.spyOn(openHAB, 'handleExecute');
+      const payload = { commands: [] };
+      handleExecuteMock.mockReturnValue(Promise.resolve(payload));
+      const result = await openHAB.onExecute({ requestId: '1234' }, {});
+      expect(handleExecuteMock).toBeCalledTimes(1);
+      expect(handleExecuteMock).toBeCalledWith([]);
+      expect(result).toStrictEqual({
+        requestId: '1234',
+        payload: payload
+      });
+    });
+
+    test('onExecute', async () => {
+      const handleExecuteMock = jest.spyOn(openHAB, 'handleExecute');
+      const payload = { commands: [] };
+      handleExecuteMock.mockReturnValue(Promise.resolve(payload));
+      const commands = [
+        {
+          devices: [{ id: '123' }, { id: '456' }],
+          execution: [
+            {
+              command: 'action.devices.commands.OnOff',
+              params: { on: true }
+            }
+          ]
+        }
+      ];
+      const body = {
+        requestId: '1234',
+        inputs: [
+          {
+            intent: 'action.devices.EXECUTE',
+            payload: {
+              commands: commands
+            }
+          }
+        ]
+      };
+      const result = await openHAB.onExecute(body, {});
+      expect(handleExecuteMock).toBeCalledTimes(1);
+      expect(handleExecuteMock).toBeCalledWith(commands);
+      expect(result).toStrictEqual({
+        requestId: '1234',
+        payload: payload
       });
     });
   });
